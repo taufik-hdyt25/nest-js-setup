@@ -12,45 +12,23 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { buildResponse } from 'src/helpers/response';
-import { CreateUserDto } from './dtos/CreateUser.dto';
-import { UserServices } from './user.service';
-import * as bcrypt from 'bcrypt';
 import { JwtAuthGuard } from 'src/middlewares/jwt';
+import { ArticlesServices } from './articles.service';
+import { CreateArticlesDto } from './dtos/CreateArticles.dto';
 
-@Controller('users')
-export class UserControllers {
-  constructor(private userService: UserServices) {}
+@Controller('articles')
+export class ArticlesControllers {
+  constructor(private articlesService: ArticlesServices) {}
 
   @Post()
   @UsePipes(ValidationPipe)
-  async createUser(@Body() createUserDto: CreateUserDto) {
+  async createUser(@Body() createArticlesDto: CreateArticlesDto) {
     try {
-      const usernameToLowerCase: string =
-        createUserDto.username.toLocaleLowerCase();
-
-      const users = await this.userService.getUserByUsername(
-        createUserDto.username,
-      );
-
-      if (users) {
-        return buildResponse(
-          false,
-          'Username ready',
-          null,
-          HttpStatus.CONFLICT,
-        );
-      }
-
-      const passwordHash = await bcrypt.hash(createUserDto.password, 10);
-      const newUser = await this.userService.createUser({
-        ...createUserDto,
-        username: usernameToLowerCase,
-        password: passwordHash,
-      });
-
+      const newUser =
+        await this.articlesService.createArticles(createArticlesDto);
       return buildResponse(
         true,
-        'User created successfully',
+        'Articles created successfully',
         newUser,
         HttpStatus.CREATED,
       );
@@ -69,9 +47,9 @@ export class UserControllers {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  async getUsers() {
+  async getArticles() {
     try {
-      const users = await this.userService.getUsers();
+      const users = await this.articlesService.getArticles();
       if (!users.length) {
         return buildResponse(true, 'Data empty', users, HttpStatus.NOT_FOUND);
       }
@@ -93,15 +71,16 @@ export class UserControllers {
       );
     }
   }
-  @Get(':username')
+  @Get(':id')
   @UseGuards(JwtAuthGuard)
-  async getUserByUsername(@Param('username') username: string) {
+  async getArticle(@Param('id') id: number) {
     try {
-      const user = await this.userService.getUserByUsername(username);
-      if (!user) {
+      const idArticle = Number(id);
+      const articles = await this.articlesService.getArticlesById(idArticle);
+      if (!articles) {
         return buildResponse(
           false,
-          'User not found',
+          'Articles not found',
           null,
           HttpStatus.NOT_FOUND,
         );
@@ -110,7 +89,7 @@ export class UserControllers {
       return buildResponse(
         true,
         'User retrieved successfully',
-        user,
+        articles,
         HttpStatus.OK,
       );
     } catch (error) {
@@ -126,10 +105,26 @@ export class UserControllers {
     }
   }
 
+  @Delete(':id')
+  async deleteArticlesById(@Param('id') id: number) {
+    try {
+      const idArticles = Number(id);
+      await this.articlesService.deleteArticleById(idArticles);
+      return buildResponse(true, 'Delete Articles Succes', null, HttpStatus.OK);
+    } catch (error) {
+      buildResponse(
+        false,
+        'Internal Server Error',
+        error.message,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Delete()
   async deleteAllUsers() {
     try {
-      await this.userService.deleteAllUsers();
+      await this.articlesService.deleteAllArticles();
 
       return buildResponse(
         true,

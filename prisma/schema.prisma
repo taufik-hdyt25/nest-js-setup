@@ -14,17 +14,24 @@ datasource db {
 }
 
 model users {
-  id Int @default(autoincrement()) @id
-  username String @unique
+  id           Int     @id @default(autoincrement())
+  username     String  @unique
   display_name String? @default("")
-  no_hp String
-  email String
-  password String
+  point        String? @default("0")
+  no_hp        String?
+  email        String?
+  password     String
 }
 
-model user_settings{
-  id Int @default(autoincrement()) @id
+model user_settings {
+  id            Int     @id @default(autoincrement())
   notifications Boolean
-  smsEnabled Boolean
+  smsEnabled    Boolean
 }
 
+model articles {
+  id        Int      @id @default(autoincrement())
+  title     String   @db.VarChar(255)
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+}
