@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AuthControllers } from 'src/auth/auth.controller';
 import { JwtModules } from 'src/constants';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { ArticlesControllers } from './articles.controller';
